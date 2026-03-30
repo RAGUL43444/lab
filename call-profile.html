@@ -1,0 +1,783 @@
+
+
+Skip to content
+Using Gmail with screen readers
+Conversations
+0% of 15 GB used
+Terms · Privacy · Program Policies
+Last account activity: 28 minutes ago
+Details
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muthayammal Polytechnic - MCQ Practice Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .subject-card {
+            transition: all 0.3s ease;
+        }
+        .subject-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        .mcq-container {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+        .mcq-container.active {
+            max-height: 1000px;
+        }
+        .option-item {
+            transition: all 0.2s ease;
+        }
+        .option-item:hover {
+            background-color: #f1f5f9;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .timer-warning {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { background-color: #fef3c7; }
+            50% { background-color: #fde68a; }
+            100% { background-color: #fef3c7; }
+        }
+        .timer-danger {
+            animation: danger-pulse 0.5s infinite;
+        }
+        @keyframes danger-pulse {
+            0% { background-color: #fecaca; }
+            50% { background-color: #f87171; }
+            100% { background-color: #fecaca; }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-md mx-4">
+            <div class="text-center mb-6">
+                <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <img src="download.jpg"/>
+                </div>
+                <h2 class="text-2xl font-bold text-gray-800">Student Login</h2>
+                <p class="text-gray-600">Enter your credentials to access MCQ practice</p>
+            </div>
+            
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Student ID</label>
+                    <input type="text" id="student-id" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Enter your student ID">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="password" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Enter your password">
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input type="checkbox" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                        <span class="ml-2 text-sm text-gray-600">Remember me</span>
+                    </label>
+                    <a href="#" class="text-sm text-blue-600 hover:text-blue-800">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-sm text-gray-600">
+                    Demo Credentials:<br>
+                    ID: student123 | Password: password123
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content (Hidden until login) -->
+    <div id="main-content" class="hidden">
+        <!-- Header with Logo -->
+        <header class="bg-white shadow-lg">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                            <img src="download.jpg"/>
+                        </div>
+                        <div>
+                            <h1 hrefclass="text-2xl font-bold text-gray-800">Muthayammal Polytechnic college</h1>
+                            <p class="text-sm text-gray-600">MCQ Practice Portal</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span id="user-welcome" class="text-gray-700 font-medium hidden md:block">Welcome, Student</span>
+                        <button onclick="logout()" class="bg-red-100 text-red-600 px-4 py-2 rounded-lg hover:bg-red-200 transition duration-300">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="bg-gradient-to-r from-blue-600 to-purple-700 text-white py-20">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-4xl md:text-5xl font-bold mb-6"> Department Of Computer Engineering , Information Technology , Artificial Intelligence & Machine Learning.</h2>
+                <p class="text-xl mb-8 max-w-3xl mx-auto">Practice MCQs in RDBMS, Digital Logic Circuits, and C Programming to excel in your polytechnic studies</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="scrollToSubjects()" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300">
+                        Start Practicing
+                    </button>
+                    <button class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition duration-300">
+                        Learn More
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Subjects Section -->
+        <section id="subjects" class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-12">Practice Subjects</h2>
+                
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- RDBMS Card -->
+                    <div class="subject-card bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                        <div class="text-center mb-6">
+                            <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-database text-3xl text-blue-600"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">RDBMS</h3>
+                            <p class="text-gray-600">Relational Database Management System</p>
+                        </div>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                SQL Queries & Joins
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Normalization
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Transaction Management
+                            </li>
+                        </ul>
+                        <button onclick="startMCQ('rdbms')" class="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300">
+                            Start Practice (10 min)
+                        </button>
+                    </div>
+
+                    <!-- Digital Logic Circuits Card -->
+                    <div class="subject-card bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                        <div class="text-center mb-6">
+                            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-microchip text-3xl text-green-600"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">Digital Logic Circuits</h3>
+                            <p class="text-gray-600">Logic Gates & Circuit Design</p>
+                        </div>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Boolean Algebra
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Combinational Circuits
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Sequential Circuits
+                            </li>
+                        </ul>
+                        <button onclick="startMCQ('digital')" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300">
+                            Start Practice (15 min)
+                        </button>
+                    </div>
+
+                    <!-- C Programming Card -->
+                    <div class="subject-card bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                        <div class="text-center mb-6">
+                            <div class="w-20 h-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fas fa-code text-3xl text-purple-600"></i>
+                            </div>
+                            <h3 class="text-xl font-semibold text-gray-800 mb-2">C Programming</h3>
+                            <p class="text-gray-600">Fundamentals & Advanced Concepts</p>
+                        </div>
+                        <ul class="space-y-2 mb-6">
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Data Types & Operators
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Control Structures
+                            </li>
+                            <li class="flex items-center text-sm text-gray-600">
+                                <i class="fas fa-check-circle text-green-500 mr-2"></i>
+                                Pointers & Functions
+                            </li>
+                        </ul>
+                        <button onclick="startMCQ('cprogramming')" class="w-full bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition duration-300">
+                            Start Practice (12 min)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MCQ Practice Section -->
+        <section id="mcq-section" class="py-16 bg-gray-50 hidden">
+            <div class="container mx-auto px-4">
+                <div class="max-w-4xl mx-auto">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <h3 id="mcq-subject" class="text-2xl font-semibold text-gray-800">MCQ Practice</h3>
+                                <div id="timer-display" class="text-sm text-gray-600 mt-1">
+                                    Time remaining: <span id="timer" class="font-mono font-bold">10:00</span>
+                                </div>
+                            </div>
+                            <button onclick="closeMCQ()" class="text-gray-500 hover:text-red-500">
+                                <i class="fas fa-times text-2xl"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="text-sm text-gray-600">Progress</span>
+                                <span id="progress-text" class="text-sm font-semibold">1/10</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div id="progress-bar" class="progress-bar bg-blue-600 h-2 rounded-full" style="width: 10%"></div>
+                            </div>
+                        </div>
+
+                        <div id="mcq-container" class="mcq-container">
+                            <div id="question-container" class="mb-6">
+                                <h4 id="question-text" class="text-lg font-medium text-gray-800 mb-4">Loading question...</h4>
+                                <div id="options-container" class="space-y-3">
+                                    <!-- Options will be populated by JavaScript -->
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <button id="prev-btn" onclick="prevQuestion()" class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50">
+                                    Previous
+                                </button>
+                                <button id="next-btn" onclick="nextQuestion()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                                    Next
+                                </button>
+                                <button id="submit-btn" onclick="submitQuiz()" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 hidden">
+                                    Submit
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="results-container" class="hidden">
+                            <div class="text-center py-8">
+                                <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-trophy text-3xl text-green-600"></i>
+                                </div>
+                                <h4 class="text-2xl font-semibold text-gray-800 mb-2">Quiz Completed!</h4>
+                                <p id="score-text" class="text-lg text-gray-600 mb-4">Your score: 0/10</p>
+                                <p id="time-taken" class="text-sm text-gray-500 mb-6">Time taken: 0 minutes</p>
+                                <button onclick="restartQuiz()" class="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mr-4">
+                                    Try Again
+                                </button>
+                                <button onclick="closeMCQ()" class="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                                    Back to Subjects
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section id="about" class="py-16 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">About Muthayammal Polytechnic college</h2>
+                    <p class="text-lg text-gray-600 max-w-3xl mx-auto">Excellence in technical education since 1984</p>
+                </div>
+                
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/34158b83-8e20-42e1-9067-e986dc1b032c.png" alt="Modern campus building of Muthayammal Polytechnic College" class="rounded-lg shadow-md w-full">
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-semibold text-gray-800 mb-4">Our Mission</h3>
+                        <p class="text-gray-600 mb-6">
+                            Muthayammal Polytechnic College is committed to providing quality technical education that empowers students with practical skills and theoretical knowledge. Our mission is to produce competent technicians who can contribute to the technological advancement of our nation.
+                        </p>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <div class="flex items-center mb-2">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-graduation-cap text-blue-600"></i>
+                                    </div>
+                                    <h4 class="font-semibold text-gray-800">Quality Education</h4>
+                                </div>
+                                <p class="text-sm text-gray-600">Industry-relevant curriculum and experienced faculty</p>
+                            </div>
+                            <div>
+                                <div class="flex items-center mb-2">
+                                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                                        <i class="fas fa-flask text-green-600"></i>
+                                    </div>
+                                    <h4 class="font-semibold text-gray-800">Modern Labs</h4>
+                                </div>
+                                <p class="text-sm text-gray-600">State-of-the-art laboratories and equipment</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-12">
+            <div class="container mx-auto px-4">
+                <div class="grid md:grid-cols-4 gap-8">
+                    <div>
+                        <div class="flex items-center mb-4">
+                            <div class="w-12 h-12 bg-blue-100 square-full flex items-center justify-center mr-3">
+                                <img src="download.jpg"/>
+                            </div>
+                            <h3 class="text-xl font-semibold">Muthayammal Polytechnic college</h3>
+                        </div>
+                        <p class="text-gray-400 text-sm">
+                            Committed to excellence in technical education and innovation for a better tomorrow.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                        <ul class="space-y-2">
+                            <li><a href="#subjects" class="text-gray-400 hover:text-white">MCQ Practice</a></li>
+                            <li><a href="#about" class="text-gray-400 hover:text-white">About Us</a></li>
+                            <li><a href="#contact" class="text-gray-400 hover:text-white">Contact</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Subjects</h4>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-gray-400 hover:text-white">RDBMS</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white">Digital Logic Circuits</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-white">C Programming</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div id="contact">
+                        <h4 class="text-lg font-semibold mb-4">Contact Info</h4>
+                        <div class="space-y-2 text-gray-400">
+                            <p class="flex items-center">
+                                <i class="fas fa-map-marker-alt mr-3"></i>
+                                Rasipuram, Namakkal ,Tamil Nadu
+                            </p>
+                            <p class="flex items-center">
+                                <i class="fas fa-phone mr-3"></i>
+                                ph:04287-222837,226782
+                                fax:04287-224837
+                            </p>
+                            <p class="flex items-center">
+                                <i class="fas fa-envelope mr-3"></i>
+                                metmpt@yahoo.com
+                              
+                            </p>
+                             <a>href="https://www.mptco.in/">Web:www.mptco.in></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                    <p class="text-gray-400 text-sm">
+                        © 2025 Muthayammal Polytechnic College. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // User credentials (in real application, this would be server-side)
+        const validCredentials = {
+            'student123': 'password123',
+            'mpc2024': 'polytechnic@123',
+            'testuser': 'testpass'
+        };
+
+        // MCQ Data for different subjects with time limits
+        const mcqData = {
+            rdbms: {
+                timeLimit: 10, // minutes
+                questions: [
+                    {
+                        question: "What does RDBMS stand for?",
+                        options: [
+                            "Relational Database Management System",
+                            "Relative Database Management System",
+                            "Random Database Management System",
+                            "Rapid Database Management System"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        question: "Which SQL command is used to retrieve data from a database?",
+                        options: ["SELECT", "GET", "RETRIEVE", "FETCH"],
+                        correct: 0
+                    },
+                    {
+                        question: "What is the purpose of the PRIMARY KEY constraint?",
+                        options: [
+                            "To uniquely identify each record in a table",
+                            "To create a relationship between tables",
+                            "To ensure data integrity",
+                            "To improve query performance"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        question: "Which SQL clause is used to filter records?",
+                        options: ["WHERE", "FILTER", "HAVING", "CONDITION"],
+                        correct: 0
+                    },
+                    {
+                        question: "What is normalization in RDBMS?",
+                        options: [
+                            "Process of organizing data to reduce redundancy",
+                            "Increasing database size",
+                            "Adding more tables",
+                            "Creating backups"
+                        ],
+                        correct: 0
+                    }
+                ]
+            },
+            digital: {
+                timeLimit: 15,
+                questions: [
+                    {
+                        question: "What is the output of an AND gate when both inputs are 1?",
+                        options: ["0", "1", "Undefined", "High impedance"],
+                        correct: 1
+                    },
+                    {
+                        question: "Which gate is known as the universal gate?",
+                        options: ["AND", "OR", "NAND", "XOR"],
+                        correct: 2
+                    },
+                    {
+                        question: "What does a flip-flop store?",
+                        options: ["Voltage", "Current", "Binary information", "Analog signal"],
+                        correct: 2
+                    },
+                    {
+                        question: "What is the truth table for OR gate?",
+                        options: [
+                            "0+0=0, 0+1=1, 1+0=1, 1+1=1",
+                            "0+0=0, 0+1=0, 1+0=0, 1+1=1",
+                            "0+0=1, 0+1=1, 1+0=1, 1+1=0",
+                            "0+0=0, 0+1=1, 1+0=1, 1+1=0"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        question: "Which circuit is used for memory storage?",
+                        options: ["Combinational", "Sequential", "Analog", "Digital"],
+                        correct: 1
+                    }
+                ]
+            },
+            cprogramming: {
+                timeLimit: 12,
+                questions: [
+                    {
+                        question: "What is the size of an integer in C?",
+                        options: ["2 bytes", "4 bytes", "Depends on compiler", "8 bytes"],
+                        correct: 2
+                    },
+                    {
+                        question: "Which operator is used to access the value at a pointer?",
+                        options: ["*", "&", "->", "."],
+                        correct: 0
+                    },
+                    {
+                        question: "What does the 'void' keyword indicate?",
+                        options: [
+                            "No return value",
+                            "Empty variable",
+                            "Null pointer",
+                            "Invalid operation"
+                        ],
+                        correct: 0
+                    },
+                    {
+                        question: "Which loop is guaranteed to execute at least once?",
+                        options: ["for", "while", "do-while", "if-else"],
+                        correct: 2
+                    },
+                    {
+                        question: "What is the purpose of #include<stdio.h>?",
+                        options: [
+                            "Include standard input/output library",
+                            "Define main function",
+                            "Declare variables",
+                            "Include math functions"
+                        ],
+                        correct: 0
+                    }
+                ]
+            }
+        };
+
+        let currentSubject = '';
+        let currentQuestion = 0;
+        let userAnswers = [];
+        let quizStarted = false;
+        let timerInterval = null;
+        let timeRemaining = 0;
+        let startTime = 0;
+        let currentUser = '';
+
+        // Login functionality
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('student-id').value;
+            const password = document.getElementById('password').value;
+
+            if (validCredentials[studentId] && validCredentials[studentId] === password) {
+                currentUser = studentId;
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('main-content').classList.remove('hidden');
+                document.getElementById('user-welcome').textContent = `Welcome, ${studentId}`;
+            } else {
+                alert('Invalid credentials. Please try again.\nDemo: student123 / password123');
+            }
+        });
+
+        function logout() {
+            currentUser = '';
+            document.getElementById('main-content').classList.add('hidden');
+            document.getElementById('login-modal').classList.remove('hidden');
+            document.getElementById('student-id').value = '';
+            document.getElementById('password').value = '';
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+        }
+
+        function scrollToSubjects() {
+            document.getElementById('subjects').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function startMCQ(subject) {
+            currentSubject = subject;
+            currentQuestion = 0;
+            userAnswers = new Array(mcqData[subject].questions.length).fill(null);
+            quizStarted = true;
+            startTime = Date.now();
+            
+            // Set timer
+            timeRemaining = mcqData[subject].timeLimit * 60; // Convert to seconds
+            startTimer();
+            
+            document.getElementById('mcq-section').classList.remove('hidden');
+            document.getElementById('mcq-subject').textContent = subject.toUpperCase() + ' MCQ Practice';
+            updateProgress();
+            showQuestion();
+            
+            document.getElementById('mcq-container').classList.add('active');
+            document.getElementById('results-container').classList.add('hidden');
+            
+            document.getElementById('subjects').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function startTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    timeUp();
+                } else if (timeRemaining <= 60) {
+                    document.getElementById('timer-display').classList.add('timer-danger');
+                } else if (timeRemaining <= 180) {
+                    document.getElementById('timer-display').classList.add('timer-warning');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('timer').textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function timeUp() {
+            alert('Time is up! Your quiz will be submitted automatically.');
+            submitQuiz();
+        }
+
+        function closeMCQ() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            document.getElementById('mcq-section').classList.add('hidden');
+            quizStarted = false;
+            document.getElementById('timer-display').classList.remove('timer-warning', 'timer-danger');
+        }
+
+        function showQuestion() {
+            const questionData = mcqData[currentSubject].questions[currentQuestion];
+            const optionsContainer = document.getElementById('options-container');
+            
+            document.getElementById('question-text').textContent = `Q${currentQuestion + 1}: ${questionData.question}`;
+            
+            optionsContainer.innerHTML = '';
+            questionData.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = `option-item p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 ${
+                    userAnswers[currentQuestion] === index ? 'bg-blue-50 border-blue-200' : ''
+                }`;
+                optionElement.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="w-6 h-6 rounded-full border-2 ${
+                            userAnswers[currentQuestion] === index ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
+                        } mr-3 flex items-center justify-center">
+                            ${userAnswers[currentQuestion] === index ? '<i class="fas fa-check text-white text-xs"></i>' : ''}
+                        </div>
+                        <span>${option}</span>
+                    </div>
+                `;
+                optionElement.onclick = () => selectOption(index);
+                optionsContainer.appendChild(optionElement);
+            });
+
+            // Update navigation buttons
+            document.getElementById('prev-btn').disabled = currentQuestion === 0;
+            document.getElementById('next-btn').classList.remove('hidden');
+            document.getElementById('submit-btn').classList.add('hidden');
+            
+            if (currentQuestion === mcqData[currentSubject].questions.length - 1) {
+                document.getElementById('next-btn').classList.add('hidden');
+                document.getElementById('submit-btn').classList.remove('hidden');
+            }
+        }
+
+        function selectOption(optionIndex) {
+            userAnswers[currentQuestion] = optionIndex;
+            showQuestion();
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < mcqData[currentSubject].questions.length - 1) {
+                currentQuestion++;
+                updateProgress();
+                showQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion--;
+                updateProgress();
+                showQuestion();
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / mcqData[currentSubject].questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('progress-text').textContent = `${currentQuestion + 1}/${mcqData[currentSubject].questions.length}`;
+        }
+
+        function submitQuiz() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            const score = calculateScore();
+            const timeTaken = Math.floor((Date.now() - startTime) / 1000); // in seconds
+            const minutes = Math.floor(timeTaken / 60);
+            const seconds = timeTaken % 60;
+            
+            document.getElementById('mcq-container').classList.remove('active');
+            document.getElementById('results-container').classList.remove('hidden');
+            document.getElementById('score-text').textContent = `Your score: ${score}/${mcqData[currentSubject].questions.length}`;
+            document.getElementById('time-taken').textContent = `Time taken: ${minutes}m ${seconds}s`;
+            
+            // Save results (in real application, this would be sent to server)
+            saveResults(score, timeTaken);
+        }
+
+        function calculateScore() {
+            let score = 0;
+            mcqData[currentSubject].questions.forEach((question, index) => {
+                if (userAnswers[index] === question.correct) {
+                    score++;
+                }
+            });
+            return score;
+        }
+
+        function saveResults(score, timeTaken) {
+            const results = {
+                studentId: currentUser,
+                subject: currentSubject,
+                score: score,
+                total: mcqData[currentSubject].questions.length,
+                timeTaken: timeTaken,
+                date: new Date().toISOString()
+            };
+            
+            // In real application, this would be sent to a server
+            console.log('Quiz results:', results);
+        }
+
+        function restartQuiz() {
+            startMCQ(currentSubject);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+mptc.html
+Displaying mptc.html.
